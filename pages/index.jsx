@@ -1,19 +1,15 @@
 
 import { ethers } from "ethers";
-// A single Web3 / Ethereum provider solution for all Wallets
 import Web3Modal from "web3modal";
 import { useEffect, useState, useRef } from 'react';
 
 export default function Home() {
   const contractAddress = process.env.CONTRACT_ADDRESS
-  // application binary interface is something that defines structure of smart contract deployed.
   const abi = process.env.ABI
 
-  // hooks for required variables
   const [provider, setProvider] = useState();
 
   const web3ModalRef = useRef();
-  // Check if wallet is connected or not
   const [walletConnected, setWalletConnected] = useState(false);
   // current  metamask address
   const [currentAddress, setCurrentAddress] = useState("");
@@ -35,10 +31,7 @@ export default function Home() {
 
 
   useEffect(() => {
-    // if wallet is not connected, create a new instance of Web3Modal and connect the MetaMask wallet
     if (!walletConnected) {
-      // Assign the Web3Modal class to the reference object by setting it's `current` value
-      // The `current` value is persisted throughout as long as this page is open
       web3ModalRef.current = new Web3Modal({
         network: "sepolia",
         providerOptions: {},
@@ -51,14 +44,11 @@ export default function Home() {
 
 
   const getProviderOrSigner = async (needSigner = false) => {
-    // Connect to Metamask
-    // Since we store `web3Modal` as a reference, we need to access the `current` value to get access to the underlying object
     const provider = await web3ModalRef.current.connect();
 
     const web3Provider = new ethers.BrowserProvider(provider);
     setProvider(web3Provider)
 
-    // If user is not connected to the Goerli network, let them know and throw an error
     const { chainId } = await web3Provider.getNetwork();
     if (chainId.toString() !== '11155111') {
       console.log(chainId.toString())
@@ -73,13 +63,8 @@ export default function Home() {
     return web3Provider;
   };
 
-  /*
-        connectWallet: Connects the MetaMask wallet
-      */
   const connectWallet = async () => {
     try {
-      // Get the provider from web3Modal, which in our case is MetaMask
-      // When used for the first time, it prompts the user to connect their wallet
       await getProviderOrSigner();
       setWalletConnected(true);
     } catch (err) {
@@ -87,16 +72,11 @@ export default function Home() {
     }
   };
 
-  // Get the current address of a
   const getCurrentAddress = async () => {
     const signer = await getProviderOrSigner(true);
     setCurrentAddress(signer.address);
   }
 
-  /**
-* Get address of an account
-*  
-*/
   async function getAddress() {
 
 
@@ -123,11 +103,6 @@ export default function Home() {
     }
   }
 
-
-  /**
-* Create an account
-*  
-*/
   async function createWallet() {
     try {
       setStoreLoader(true)
@@ -152,10 +127,6 @@ export default function Home() {
   }
 
 
-  /**
- * Fund wallet
- *  
- */
   async function fundWallet() {
 
     try {
@@ -180,15 +151,11 @@ export default function Home() {
     }
   }
 
-  /**
-   * Get balance
-  */
   async function getBalance(provider) {
     try {
       setRetrieveLoader(true)
       const signer = await getProviderOrSigner(true);
 
-      // initalize smartcontract with the essentials detials.
       const smartContract = new ethers.Contract(contractAddress, abi, provider);
       const contractWithSigner = smartContract.connect(signer);
       // interact with the methods in smart contract
